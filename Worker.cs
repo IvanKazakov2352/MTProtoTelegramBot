@@ -17,7 +17,7 @@ public class Worker(ILogger<Worker> logger, IHostApplicationLifetime host) : Bac
     {
         try
         {
-            var secrets = Secrets.ReadSecretsData() ?? throw new FileLoadException("Secrets are missing");
+            var secrets = Secrets.ReadSecretsData() ?? throw new ReadSecretsException("Read secrets error");
             logger.LogInformation("Bot token: {token}", secrets.BotToken);
 
             var proxy = new WebProxy(secrets.SocksUrl)
@@ -81,7 +81,9 @@ public class Worker(ILogger<Worker> logger, IHostApplicationLifetime host) : Bac
 
         if (string.Equals(message.Text, "/link", StringComparison.OrdinalIgnoreCase) && client is not null)
         {
-            await client.SendMessage(message.Chat.Id, "Your actual link MTProto Proxy");
+            await client.SendMessage(message.Chat.Id, "Your current MTProto Proxy link");
         }
     }
 }
+
+class ReadSecretsException(string ex) : Exception(ex);

@@ -1,11 +1,10 @@
 using MTProtoTG;
 
-var host = Host.CreateDefaultBuilder(args)
+Host.CreateDefaultBuilder(args)
     .UseSystemd()
     .ConfigureServices((hostContext, services) =>
     {
         services.AddHostedService<Worker>();
     })
-    .Build();
-
-host.Run();
+    .Build()
+    .Run();

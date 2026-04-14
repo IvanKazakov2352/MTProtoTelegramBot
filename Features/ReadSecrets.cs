@@ -10,8 +10,6 @@ class Secrets
         if (!File.Exists(filePath))
             throw new FileNotFoundException("File secrets.json not found");
 
-        var text = File.ReadAllText(filePath);
-
-        return JsonConvert.DeserializeObject<ISecretsData>(text);
+        return JsonConvert.DeserializeObject<ISecretsData>(File.ReadAllText(filePath));
     }
 }
