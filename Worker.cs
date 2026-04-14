@@ -65,7 +65,7 @@ public class Worker(ILogger<Worker> logger, IHostApplicationLifetime host) : Bac
 
     private async Task OnError(Exception exception, HandleErrorSource source)
     {
-        logger.LogError("Bot error exception: {message}", exception.Message);
+        logger.LogError("Bot exception: {message}", exception.Message);
     }
 
     private async Task OnMessage(Message message, UpdateType type)
