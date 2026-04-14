@@ -4,7 +4,7 @@ namespace MTProtoTG.Features;
 
 class Secrets
 {
-    public static ISecretsData? ReadSecretsData()
+    public static ISecretsData? ReadSecrets()
     {
         var filePath = "/etc/secrets/secrets.json";
         if (!File.Exists(filePath))

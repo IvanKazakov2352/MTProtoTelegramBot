@@ -11,13 +11,14 @@ namespace MTProtoTG;
 
 public class Worker(ILogger<Worker> logger, IHostApplicationLifetime host) : BackgroundService
 {
-    private TelegramBotClient? client;
+    private TelegramBotClient? _telegramBotClient;
+    private HttpClient? _httpClient;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         try
         {
-            var secrets = Secrets.ReadSecretsData() ?? throw new ReadSecretsException("Read secrets error");
+            var secrets = Secrets.ReadSecrets() ?? throw new ReadSecretsException("Read secrets error");
             logger.LogInformation("Bot token: {token}", secrets.BotToken);
 
             var proxy = new WebProxy(secrets.SocksUrl)
@@ -34,22 +35,22 @@ public class Worker(ILogger<Worker> logger, IHostApplicationLifetime host) : Bac
                 ConnectTimeout = TimeSpan.FromSeconds(15)
             };
 
-            var httpClient = new HttpClient(handler);
+            _httpClient = new HttpClient(handler);
 
-            var client = new TelegramBotClient(secrets.BotToken, httpClient, stoppingToken);
-            if (client is not null)
+            var telegramBotClient = new TelegramBotClient(secrets.BotToken, _httpClient, stoppingToken);
+            if (telegramBotClient is not null)
             {
                 logger.LogInformation("Bot running at: {Time}", DateTimeOffset.Now);
 
-                await client.SetMyCommands(
+                _telegramBotClient = telegramBotClient;
+
+                await _telegramBotClient.SetMyCommands(
                     [("/start", "Getting information about Bot"), ("/link", "Getting link on MTProto proxy")],
                     BotCommandScope.AllPrivateChats(),
                     cancellationToken: stoppingToken);
 
-                client.OnMessage += OnMessage;
-                client.OnError += OnError;
-
-                this.client = client;
+                _telegramBotClient.OnMessage += OnMessage;
+                _telegramBotClient.OnError += OnError;
             }
             else
             {
@@ -74,14 +75,14 @@ public class Worker(ILogger<Worker> logger, IHostApplicationLifetime host) : Bac
 
         logger.LogInformation("Recieved message... {message}", message.Text);
 
-        if (string.Equals(message.Text, "/start", StringComparison.OrdinalIgnoreCase) && client is not null)
+        if (string.Equals(message.Text, "/start", StringComparison.OrdinalIgnoreCase) && _telegramBotClient is not null)
         {
-            await client.SendMessage(message.Chat.Id, "This bot for getting actual link for using MTProto Proxy");
+            await _telegramBotClient.SendMessage(message.Chat.Id, "This bot for getting actual link for using MTProto Proxy");
         }
 
-        if (string.Equals(message.Text, "/link", StringComparison.OrdinalIgnoreCase) && client is not null)
+        if (string.Equals(message.Text, "/link", StringComparison.OrdinalIgnoreCase) && _telegramBotClient is not null)
         {
-            await client.SendMessage(message.Chat.Id, "Your current MTProto Proxy link");
+            await _telegramBotClient.SendMessage(message.Chat.Id, "Your current MTProto Proxy link");
         }
     }
 }
